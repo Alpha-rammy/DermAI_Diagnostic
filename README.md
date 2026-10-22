@@ -1,1175 +1,220 @@
-# 🩺 DermAI Diagnostics
+# DermAI Diagnostics — Skin Cancer Clinical & Risk Factor Analytics
 
-## Skin Lesion Malignancy Prediction, SQL Analytics & Explainable Machine Learning
+**SQL · Excel · Healthcare Analytics**  
+*Supporting preparation: Python*
 
-![Python](https://img.shields.io/badge/Python-3.12-blue)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-SQL-blue)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-Machine%20Learning-orange)
-![FastAPI](https://img.shields.io/badge/FastAPI-API-green)
-![SHAP](https://img.shields.io/badge/SHAP-Explainable%20AI-purple)
-![License](https://img.shields.io/badge/License-MIT-green)
+> **Project focus:** An exploratory, stakeholder-facing analysis of skin lesion records. This project does **not** diagnose cancer, estimate population prevalence, or establish causal risk factors.
 
-DermAI Diagnostics is an end-to-end healthcare data science project that uses patient, behavioural and skin-lesion characteristics to predict whether a lesion is benign or malignant.
+## 1. Introduction
 
-The project combines PostgreSQL, exploratory data analysis, machine learning, hyperparameter tuning, explainable artificial intelligence and FastAPI.
+DermAI Diagnostics explores how cancerous lesion classifications vary across patient demographics, diagnostic categories, anatomical locations and recorded exposures. The goal was to turn clinical records into a consistent, understandable reporting experience rather than produce a predictive model.
 
-Unlike projects that focus only on predictive accuracy, DermAI Diagnostics also considers class imbalance, data leakage, clinical interpretation and model transparency.
+I used SQL to inspect and validate records, examine joins and cohort definitions, and prepare an analytical view. Python notebooks supported exploratory analysis, preprocessing and feature engineering. I then used Excel to build two interactive dashboards for stakeholder exploration.
 
-The project is intended for educational and portfolio purposes. It is not a medical device and should not replace clinical examination, biopsy or professional medical judgement.
+## 2. The Business Problem
 
----
+Clinical information can be spread across related tables and difficult to compare consistently. Without a defined cohort, validated outcome indicators and accessible reporting, analysts risk producing inconsistent subgroup rates or repeating manual calculations.
 
-# 📋 Table of Contents
+The business need was a **traceable view of lesion classifications and associated clinical patterns** that stakeholders could navigate without writing SQL.
 
-- [Healthcare Challenge](#-healthcare-challenge)
-- [Project Objectives](#-project-objectives)
-- [Dataset Description](#-dataset-description)
-- [Project Workflow](#-project-workflow)
-- [Key Features](#-key-features)
-- [Project Structure](#-project-structure)
-- [Technology Stack](#️-technology-stack)
-- [SQL Analytics](#-sql-analytics)
-- [Exploratory Data Analysis](#-exploratory-data-analysis)
-- [Data Preprocessing](#️-data-preprocessing)
-- [Machine Learning Modelling](#-machine-learning-modelling)
-- [Hyperparameter Tuning](#️-hyperparameter-tuning)
-- [Model Evaluation](#-model-evaluation)
-- [Final Model Selection](#-final-model-selection)
-- [Model Explainability](#-model-explainability)
-- [FastAPI Prediction API](#-fastapi-prediction-api)
-- [Key Results](#-key-results)
-- [Project Visualisations](#-project-visualisations)
-- [Clinical Interpretation](#-clinical-interpretation)
-- [Project Limitations](#️-project-limitations)
-- [Future Improvements](#-future-improvements)
-- [Installation](#-installation)
-- [Running the Project](#️-running-the-project)
-- [License](#-license)
-- [Author](#-author)
+## 3. Central Business Question
 
----
+**How do patient demographics, clinical characteristics and recorded risk factors relate to cancerous skin lesions in this dataset, and which patterns merit further investigation?**
 
-# 🏥 Healthcare Challenge
+Supporting questions:
 
-Early identification of suspicious skin lesions is important because delayed assessment may affect patient outcomes.
+- What proportion of analysed lesions is classified as cancerous?
+- How do cancerous lesion rates differ by age group and gender?
+- How do lesion diameter and anatomical region vary across the clinical records?
+- What differences appear between recorded exposure groups and between those with and without skin cancer history?
+- How can the findings be presented consistently and interactively for stakeholder review?
 
-Clinical decisions are normally based on several sources of information, including:
+## 4. Why This Approach?
 
-- Patient demographics
-- Personal and family cancer history
-- Environmental and behavioural exposures
-- Lesion size
-- Changes in lesion appearance
-- Symptoms such as bleeding, itching, growth and pain
-- Clinical examination
-- Histopathological investigation
+I chose **SQL** for the preparation layer because relationships, data quality checks and clinical outcome definitions should be explicit and inspectable. I chose **Excel** for the reporting layer because PivotTables, slicers and charts make subgroup comparisons accessible to non-technical reviewers.
 
-However, relationships between these characteristics may be difficult to evaluate consistently across many patients.
+Python supported intermediate exploration and preparation; it was not used to deliver a deployed predictive model. This is presented primarily as a **SQL + Excel data analyst project**, with that supporting work disclosed for transparency.
 
-DermAI Diagnostics explores whether routinely available patient and lesion information can be used to:
+**Workflow:** SQL retrieval and validation → joins and cohort analysis → analytical view → supporting preparation → Excel analysis → interactive dashboards → recommendations.
 
-1. Distinguish between benign and malignant lesions.
-2. Identify characteristics associated with malignancy.
-3. Compare interpretable and complex machine-learning models.
-4. Explain how individual features influence predictions.
-5. Expose the final model through a prediction API.
+## 5. How I Built It
 
-The project focuses on building a transparent and reproducible healthcare machine-learning workflow.
+### SQL preparation
 
----
+- [Database validation](sql/01_database_validation.sql): inspected records and checked data-quality issues.
+- [Business analysis](sql/02_business_analysis.sql): investigated joins, cohort definitions and clinical indicators.
+- [Analytical view](sql/03_analytical_view.sql): organised fields for downstream analysis.
 
-# 🎯 Project Objectives
-
-The objectives of the project are to:
-
-- Build a complete healthcare data science workflow.
-- Store and analyse skin-lesion data using PostgreSQL.
-- Perform SQL-based data-quality checks.
-- Use joins, common table expressions, subqueries and window functions.
-- Create a final analytic dataset for machine learning.
-- Explore demographic, behavioural and clinical risk factors.
-- Develop Logistic Regression, Random Forest and XGBoost models.
-- Tune the tree-based models using cross-validation.
-- Compare models using healthcare-relevant evaluation metrics.
-- Prioritise recall while also considering precision, F1 score and ROC AUC.
-- Prevent data leakage by excluding variables unavailable at prediction time.
-- Explain the final model using coefficients and SHAP.
-- Build a FastAPI endpoint for lesion-risk prediction.
-- Document limitations and responsible-use considerations.
-
----
-
-# 📊 Dataset Description
-
-The project uses a structured skin-lesion dataset containing approximately **1,088 records**.
-
-The data includes patient-level, exposure-related and lesion-specific information.
-
-## Patient and demographic variables
-
-Examples include:
-
-- Patient identifier
-- Age
-- Age group
-- Gender
-- Fitzpatrick skin type
-- Region
-- Paternal background
-- Maternal background
-
-## Behavioural and environmental variables
-
-Examples include:
-
-- Smoking
-- Alcohol consumption
-- Pesticide exposure
-- Access to piped water
-- Access to a sewage system
-
-## Medical history variables
-
-Examples include:
-
-- Previous skin-cancer history
-- Other cancer history
-- Relevant family background variables
-
-## Lesion characteristics
-
-Examples include:
-
-- First lesion diameter
-- Second lesion diameter
-- Average lesion diameter
-- Lesion-size category
-- Itching
-- Growth
-- Pain
-- Change in appearance
-- Bleeding
-- Elevation
-
-## Target variable
-
-The target was encoded as:
-
-- **0 — Benign**
-- **1 — Malignant**
-
-The target distribution was approximately:
-
-- **68% benign**
-- **32% malignant**
-
-This represents moderate class imbalance rather than severe imbalance.
-
----
-
-# 🔄 Project Workflow
-
-The project follows this workflow:
+The central outcome indicator, `cancerous_flag`, was used to count records classified as cancerous. The reported rate is:
 
 ```text
-Raw Skin-Lesion Data
-        │
-        ▼
-PostgreSQL Table Creation
-        │
-        ▼
-SQL Data-Quality Checks
-        │
-        ▼
-Exploratory and Advanced SQL
-        │
-        ▼
-Final Analytic View
-        │
-        ▼
-Python Exploratory Data Analysis
-        │
-        ▼
-Data Preprocessing
-        │
-        ▼
-Baseline Machine-Learning Models
-        │
-        ▼
-Tree-Based Model Tuning
-        │
-        ▼
-Final Model Comparison
-        │
-        ▼
-Model Explainability
-        │
-        ▼
-FastAPI Prediction Endpoint
+Cancerous lesion rate = cancerous lesion count / total lesion count × 100
 ```
 
-This structure reflects a realistic healthcare analytics workflow from raw data to an interpretable prediction service.
+**Clinical classification caveat:** The mapping of diagnostic categories to `cancerous_flag` must be checked against the actual SQL and source definitions before publication. In particular, actinic keratosis is generally considered precancerous rather than an invasive cancer.
 
----
+### Supporting Python preparation
 
-# 🏆 Key Features
+The repository also contains [EDA](Notebooks/01_EDA.ipynb), [preprocessing](Notebooks/02_preprocessing.ipynb), [feature engineering](Notebooks/03_feature_engineering.ipynb) and [model-ready dataset preparation](Notebooks/04_model_ready_dataset.ipynb) notebooks. “Model-ready” describes the prepared data structure; it does **not** mean a model was trained as part of this deliverable.
 
-✅ End-to-end healthcare data science workflow  
-✅ PostgreSQL data storage and analytics  
-✅ Data-quality checks using SQL  
-✅ Joins, subqueries, CTEs and window functions  
-✅ Final analytic view for machine learning  
-✅ Demographic, behavioural and clinical analysis  
-✅ Leakage-aware feature selection  
-✅ Scikit-learn preprocessing pipelines  
-✅ Logistic Regression baseline  
-✅ Random Forest and XGBoost classification  
-✅ Hyperparameter tuning with `RandomizedSearchCV`  
-✅ Model comparison using healthcare-relevant metrics  
-✅ SHAP and coefficient-based explainability  
-✅ FastAPI prediction endpoint  
-✅ Swagger documentation and successful API testing  
-✅ Responsible-use and limitation documentation  
+### Excel reporting
 
----
+The [Excel workbook](dashboard/EXCEL-DERMAI.xlsx) contains two linked dashboard pages with KPIs, PivotTable-based summaries, charts and Gender/Age Group slicers.
 
-# 📁 Project Structure
+**Executive Overview** — high-level lesion counts, diagnosis distribution and demographic rates.
+
+![DermAI Executive Overview](images/executive_overview.png)
+
+**Clinical & Risk Factor Analysis** — exposure comparisons, lesion diameter, anatomical regions and recorded skin cancer history.
+
+![DermAI Clinical and Risk Factor Analysis](images/clinical_risk_analysis.png)
+
+*Image paths above are relative to the repository root. Add screenshots with these exact lowercase filenames to the `images/` folder for them to render on GitHub.*
+
+## 6. Tools, AI Assistance & Ownership
+
+| Tool | Role |
+|---|---|
+| SQL / PostgreSQL | Retrieval, validation, joins, cohort analysis and analytical view |
+| Excel / Power Query | Data preparation, PivotTables, KPI calculations, charts, slicers and dashboard navigation |
+| Python | Supporting EDA, preprocessing and feature engineering |
+| VS Code | Development and project organisation |
+| GitHub | Source files, documentation and portfolio presentation |
+| ChatGPT | Explanations, troubleshooting and writing support |
+
+I used AI assistance to understand technical options, troubleshoot Excel behaviour and improve documentation. I remained responsible for checking calculations, testing interactions and ensuring that interpretations matched the data. AI suggestions are not treated as independent verification.
+
+## 7. Verification: How I Checked the Results
+
+### Overall KPI reconciliation
+
+| Check | Calculation | Result |
+|---|---|---|
+| Lesion totals | 346 cancerous + 742 non-cancerous | **1,088** |
+| Cancerous rate | 346 ÷ 1,088 × 100 | **31.8%** (rounded) |
+
+### Gender filter reconciliation
+
+| KPI | Female | Male | Combined |
+|---|---:|---:|---:|
+| Total lesions | 362 | 726 | 1,088 |
+| Cancerous lesions | 157 | 189 | 346 |
+| Non-cancerous lesions | 205 | 537 | 742 |
+| Cancerous rate | 43.4% | 26.0% | 31.8% overall |
+
+I tested the KPI cards against Gender and Age Group selections and confirmed that the relevant charts responded to the connected slicers. I also tested navigation between the two dashboards.
+
+**Scope of verification:** These checks establish internal numerical consistency for the observed outputs and confirm the tested interactions. They do **not** independently validate every source diagnosis, join or outcome mapping. Before describing SQL validation as fully passed, the script outputs should be checked against the final analysis-ready dataset, including record grain, duplicate handling and subgroup denominators.
+
+## 8. Key Clinical Findings
+
+### Overall profile and diagnosis distribution
+
+The dataset contains **1,088 lesion records**, of which **346 (31.8%)** are classified as cancerous and **742 (68.2%)** as non-cancerous. The largest displayed diagnostic categories were actinic keratosis (**461**) and basal cell carcinoma (**273**) records. These are counts within the analysed dataset, not population estimates.
+
+### Age group
+
+| Age group | Cancerous lesion rate |
+|---|---:|
+| Elderly | 36.6% |
+| Older Adult | 33.7% |
+| Middle Age | 20.3% |
+| Young Adult | 3.5% |
+
+The elderly group had a rate **33.1 percentage points** above the young adult group. Group sizes and selection effects need checking before interpreting the difference further.
+
+### Gender
+
+Female records showed **43.4%** cancerous lesions versus **26.0%** for male records, a **17.4-percentage-point** difference. Male records nonetheless contributed more cancerous lesions in absolute terms (**189 versus 157**). This is why counts and rates should be shown together.
+
+### Average lesion diameter by diagnosis
+
+| Diagnosis | Average diameter |
+|---|---:|
+| Melanoma | 14.1 mm |
+| Squamous cell carcinoma | 10.5 mm |
+| Basal cell carcinoma | 10.0 mm |
+| Actinic keratosis | 2.6 mm |
+| Seborrheic keratosis | 0.8 mm |
+| Melanocytic nevus | 0.7 mm |
+
+Melanoma had the largest average recorded diameter among the displayed diagnoses. **Diameter alone is not diagnostic.**
+
+### Anatomical region
+
+The five highest displayed cancerous lesion rates were **nose 69.1%**, **lip 57.1%**, **neck 54.1%**, **ear 53.1%** and **chest 41.9%**. These percentages should be assessed alongside the number of lesions per site.
+
+### Recorded exposures
+
+| Recorded exposure | Exposed | Not exposed |
+|---|---:|---:|
+| Smoking | 75.8% | 29.1% |
+| Alcohol consumption | 71.0% | 26.1% |
+| Pesticides | 70.0% | 22.0% |
+
+The exposed groups had higher observed cancerous lesion rates in this dataset. These are **unadjusted descriptive associations**, not evidence that the exposures caused cancer.
+
+### Recorded skin cancer history
+
+The displayed cancerous lesion rate was **70.1%** among records with a history and **21.9%** among those without, a **48.2-percentage-point** difference. The interpretation depends on the definition and completeness of the history field and the sampling process.
+
+## 9. Recommendations & Business Impact
+
+| Finding | Recommended next action | Potential stakeholder value |
+|---|---|---|
+| Age and gender differences | Review subgroup counts and assess potential confounding | More reliable demographic comparisons |
+| Variation by anatomical region | Report denominators and investigate unusually high rates | Better-targeted analytical review |
+| Exposure-group differences | Validate exposure definitions and pursue adjusted analysis where appropriate | Stronger evidence before intervention decisions |
+| Skin cancer history association | Check history completeness and case-selection effects | Better interpretation of clinical context |
+| Repeated clinical reporting needs | Standardise SQL definitions and maintain interactive Excel reporting | Less repeated manual analysis and more consistent KPIs |
+
+**What the project already demonstrates:** A working, interactive reporting workflow; consistent overall and tested Gender KPI arithmetic; and navigation between the two dashboards.
+
+**What is not yet measured:** Time saved, cost reduction, clinical outcome improvement or operational productivity gains. Those would require comparison with an existing reporting process.
+
+If adopted in a real service, I would measure report preparation time, frequency of manual recalculation, source-to-report discrepancies, time to answer common stakeholder questions and data-quality exceptions. These metrics would establish whether the workflow creates quantifiable business value.
+
+## 10. Limitations & Future Improvements
+
+- **Representativeness:** The 1,088 records may not reflect a broader population; rates are not incidence or prevalence estimates.
+- **Clinical classification:** Verify the `cancerous_flag` mapping, especially distinctions between malignant and precancerous diagnoses.
+- **Uncertainty:** Add subgroup counts and confidence intervals, particularly for small groups.
+- **Confounding:** Descriptive exposure differences are not adjusted causal estimates.
+- **Data provenance and quality:** Document source, collection context, missingness and join assumptions.
+- **Operational evaluation:** Benchmark dashboard reporting against a manual baseline before claiming efficiency gains.
+
+Next improvements would be a published data dictionary, explicit cohort and outcome definitions, reproducible SQL-to-Excel reconciliation checks, subgroup denominators and an evaluation of reporting efficiency.
+
+## 11. Conclusion
+
+DermAI Diagnostics demonstrates how **SQL and Excel** can turn clinical records into an accessible, auditable analytical report. I combined database-level preparation with interactive dashboards to explore lesion classifications, demographic variation, clinical characteristics and recorded exposures.
+
+The project's value is not automated diagnosis. It is a **clearer, traceable way to examine clinical patterns and identify questions worth investigating further**, with the limitations of descriptive analysis made explicit.
+
+## Repository Guide
 
 ```text
 DermAI_Diagnostics/
-│
-├── api/
-│   ├── __init__.py
-│   ├── main.py
-│   └── schemas.py
-│
-├── data/
-│   ├── raw/
-│   │   └── dermai_ml_ready.csv
-│   └── processed/
-│
-├── Models/
-│   ├── best_model_pipeline.joblib
-│   ├── logistic_regression_pipeline.joblib
-│   ├── random_forest_pipeline.joblib
-│   └── xgboost_pipeline.joblib
-│
+├── sql/
+│   ├── 01_database_validation.sql
+│   ├── 02_business_analysis.sql
+│   └── 03_analytical_view.sql
 ├── Notebooks/
 │   ├── 01_EDA.ipynb
 │   ├── 02_preprocessing.ipynb
-│   ├── 03_Modeling.ipynb
-│   └── 04_explainability.ipynb
-│
+│   ├── 03_feature_engineering.ipynb
+│   └── 04_model_ready_dataset.ipynb
+├── data/
+│   ├── raw/
+│   └── processed/
+├── dashboard/
+│   └── EXCEL-DERMAI.xlsx
+├── images/
+│   ├── executive_overview.png
+│   └── clinical_risk_analysis.png
 ├── reports/
-│   ├── figures/
-│   ├── final_comparison.csv
-│   ├── model_comparison.csv
-│   ├── lr_feature_importance.csv
-│   └── xgboost_feature_importance.csv
-│
-├── sql/
-│   ├── 01_create_table.sql
-│   ├── 02_data_quality_check.sql
-│   ├── 03_exploratory_queries.sql
-│   ├── 04_advanced_sql.sql
-│   └── 05_modeling_dataset.sql
-│
-├── .gitignore
+│   └── clinical_findings_and_recommendations.pdf  
 ├── requirements.txt
-├── README.md
-└── LICENSE
+└── README.md
 ```
 
-Each notebook and SQL file focuses on a distinct stage of the workflow, making the project easier to understand, reproduce and review.
-
----
-
-# 🛠️ Technology Stack
-
-| Category | Technologies |
-|---|---|
-| Programming | Python 3.12 |
-| Database | PostgreSQL |
-| Database Management | pgAdmin |
-| Data Processing | pandas, NumPy |
-| Data Visualisation | Matplotlib, Seaborn |
-| Machine Learning | scikit-learn, XGBoost |
-| Hyperparameter Tuning | RandomizedSearchCV |
-| Explainable AI | SHAP, model coefficients |
-| API Development | FastAPI |
-| API Server | Uvicorn |
-| Model Persistence | Joblib |
-| Development Environment | Jupyter Notebook, VS Code |
-| Version Control | Git, GitHub |
-
----
-
-# 🗄️ SQL Analytics
-
-PostgreSQL was used to store, validate and analyse the skin-lesion data before Python modelling.
-
-The SQL workflow was divided into five organised scripts.
-
-## 1. Table Creation
-
-`01_create_table.sql`
-
-This script contains:
-
-- Database table definition
-- Column names
-- Data types
-- Primary identifiers
-- Data-loading preparation
-
-## 2. Data-Quality Checks
-
-`02_data_quality_check.sql`
-
-The data-quality stage assessed:
-
-- Missing values
-- Duplicate records
-- Duplicate patient identifiers
-- Duplicate lesion identifiers
-- Invalid ages
-- Invalid lesion measurements
-- Unexpected categorical values
-- Target-variable consistency
-- Null values in required fields
-
-These checks ensured that the modelling dataset was reliable before analysis.
-
-## 3. Exploratory SQL Queries
-
-`03_exploratory_queries.sql`
-
-The exploratory SQL analysis examined:
-
-- Total patient and lesion counts
-- Benign and malignant case distribution
-- Diagnosis by age group
-- Diagnosis by gender
-- Diagnosis by Fitzpatrick skin type
-- Diagnosis by geographical region
-- Cancer history by diagnosis
-- Behavioural exposure patterns
-- Lesion symptoms by diagnosis
-
-## 4. Advanced SQL
-
-`04_advanced_sql.sql`
-
-Advanced SQL methods included:
-
-- Multiple-table joins
-- Common table expressions
-- Subqueries
-- Window functions
-- Ranking
-- Partitioned calculations
-- Group-level comparisons
-- Conditional aggregation
-
-These techniques were used to generate more detailed healthcare insights and demonstrate advanced querying skills.
-
-## 5. Final Modelling Dataset
-
-`05_modeling_dataset.sql`
-
-The final SQL stage created the analytic view used for Python modelling.
-
-It included:
-
-- Selected patient characteristics
-- Behavioural and environmental risk factors
-- Lesion measurements
-- Clinical lesion characteristics
-- Target-variable encoding
-- Final column selection
-- Export-ready modelling view
-
-The analytic view was exported to CSV and used as the source for Python analysis.
-
----
-
-# 🔍 Exploratory Data Analysis
-
-Exploratory analysis was performed in `01_EDA.ipynb`.
-
-The analysis was organised into clear clinical and analytical categories.
-
-## Data Overview
-
-The initial inspection included:
-
-- Dataset shape
-- Column names
-- Data types
-- Sample records
-- Numerical and categorical feature identification
-- Statistical summaries
-
-## Data Inspection
-
-The inspection stage assessed:
-
-- Missing values
-- Duplicate rows
-- Duplicate patient identifiers
-- Duplicate lesion identifiers
-- Unique categorical values
-- Invalid numerical values
-- Target balance
-
-Repeated lesion identifiers were investigated separately from completely duplicated rows because one patient or lesion-related identifier may legitimately appear under specific data structures.
-
-## Demographic Analysis
-
-Demographic variables included:
-
-- Age
-- Age group
-- Gender
-- Fitzpatrick skin type
-- Region
-- Parental background
-
-Fitzpatrick codes were mapped to interpretable skin-type labels before visual analysis.
-
-## Behavioural and Environmental Risk Analysis
-
-Variables examined included:
-
-- Smoking
-- Alcohol consumption
-- Pesticide exposure
-- Piped-water access
-- Sewage-system access
-
-## Clinical Risk Analysis
-
-Clinical variables included:
-
-- Previous skin-cancer history
-- Other cancer history
-- Lesion itching
-- Lesion growth
-- Pain
-- Change in appearance
-- Bleeding
-- Elevation
-- Lesion size
-
-## Target Analysis
-
-The diagnosis distribution showed approximately:
-
-- 68% benign lesions
-- 32% malignant lesions
-
-This indicated moderate class imbalance.
-
-The project therefore used:
-
-- Stratified train-test splitting
-- Class weighting
-- Precision
-- Recall
-- F1 score
-- ROC AUC
-
-Accuracy was not used as the only model-selection criterion.
-
----
-
-# ⚙️ Data Preprocessing
-
-Data preprocessing was performed in `02_preprocessing.ipynb`.
-
-## Feature and Target Separation
-
-The diagnosis-related target was separated from the predictors before model training.
-
-Identifier variables that were not meaningful predictors were excluded.
-
-## Leakage Prevention
-
-The biopsy-status variable was removed from the feature set.
-
-Biopsy status may reflect a clinical decision made after a lesion has already been identified as suspicious. Including it could provide the model with information that would not be available at the intended prediction stage.
-
-Removing this feature made the modelling workflow more realistic and reduced the risk of data leakage.
-
-## Train-Test Split
-
-The data was divided into training and testing sets before fitting any preprocessing transformation.
-
-A stratified split was used to preserve the benign-to-malignant class ratio in both datasets.
-
-## Numerical Features
-
-The numerical variables included:
-
-- Age
-- Fitzpatrick skin-type code
-- Diameter 1
-- Diameter 2
-- Average diameter
-
-The numerical pipeline included:
-
-- Median imputation
-- Standardisation using `StandardScaler`
-
-## Categorical Features
-
-The categorical variables included:
-
-- Age group
-- Gender
-- Smoking
-- Alcohol use
-- Pesticide exposure
-- Cancer history
-- Skin-cancer history
-- Water and sewage access
-- Parental background
-- Region
-- Lesion-size category
-- Itching
-- Growth
-- Pain
-- Change
-- Bleeding
-- Elevation
-
-The categorical pipeline included:
-
-- Most-frequent-value imputation
-- One-hot encoding
-- Handling of previously unseen categories
-
-## Preprocessing Pipeline
-
-A `ColumnTransformer` was combined with each classifier using a Scikit-learn `Pipeline`.
-
-This ensured that:
-
-- Transformations were learned from training data only.
-- The same transformations were applied to test data.
-- The full process could be saved as a single model object.
-- The API could accept raw feature values without separate manual preprocessing.
-
----
-
-# 🤖 Machine Learning Modelling
-
-Machine learning was performed in `03_Modeling.ipynb`.
-
-The problem was formulated as binary classification:
-
-- **0 — Benign**
-- **1 — Malignant**
-
-Three models were evaluated.
-
-## Logistic Regression
-
-Logistic Regression was used as the baseline because it is:
-
-- Simple
-- Interpretable
-- Efficient
-- Suitable for one-hot encoded features
-- Commonly used in healthcare risk modelling
-
-`class_weight="balanced"` was applied to account for the moderate class imbalance.
-
-## Random Forest
-
-Random Forest was evaluated because it can:
-
-- Capture non-linear relationships
-- Model interactions between features
-- Handle mixed predictor patterns
-- Provide feature-importance estimates
-
-## XGBoost
-
-XGBoost was included because it is a powerful boosting algorithm for structured tabular data.
-
-It can:
-
-- Capture complex patterns
-- Model non-linear relationships
-- Combine multiple weak decision trees
-- Provide feature-importance information
-
----
-
-# ⚙️ Hyperparameter Tuning
-
-Random Forest and XGBoost were tuned using `RandomizedSearchCV`.
-
-Randomized search was chosen because it evaluates a selected number of parameter combinations rather than testing every possible combination.
-
-This reduces computational time while still exploring a meaningful search space.
-
-## Random Forest parameters
-
-The search included:
-
-- Number of trees
-- Maximum tree depth
-- Minimum samples required to split a node
-- Minimum samples required in a leaf
-- Number of features considered at each split
-
-The best cross-validation ROC AUC was approximately:
-
-```text
-0.974
-```
-
-## XGBoost parameters
-
-The search included:
-
-- Number of estimators
-- Learning rate
-- Maximum tree depth
-- Row subsampling
-- Feature subsampling
-
-The best cross-validation ROC AUC was approximately:
-
-```text
-0.974
-```
-
-The cross-validation results were used to select the best tree-based configurations.
-
-The tuned models were then evaluated on the independent test set. Cross-validation scores were not compared directly with held-out test scores because they represent different evaluation stages.
-
----
-
-# 📏 Model Evaluation
-
-Models were evaluated using multiple classification metrics.
-
-| Metric | Purpose |
-|---|---|
-| Accuracy | Overall percentage of correct predictions |
-| Precision | Reliability of malignant predictions |
-| Recall | Ability to identify actual malignant lesions |
-| F1 Score | Balance between precision and recall |
-| ROC AUC | Ability to distinguish benign from malignant lesions across thresholds |
-
-## Importance of Recall
-
-Recall is especially important in this project because a false negative represents a malignant lesion incorrectly classified as benign.
-
-However, selecting a model based only on recall could increase false-positive predictions.
-
-The final decision therefore considered:
-
-- ROC AUC
-- Recall
-- Precision
-- F1 score
-- Model interpretability
-
-Confusion matrices and classification reports were also used to examine error patterns.
-
----
-
-# 🏆 Final Model Selection
-
-The final test-set results were:
-
-| Model | Accuracy | Precision | Recall | F1 Score | ROC AUC |
-|---|---:|---:|---:|---:|---:|
-| Logistic Regression | **0.885** | **0.789** | 0.870 | 0.828 | **0.955** |
-| Tuned Random Forest | 0.881 | 0.759 | **0.913** | **0.829** | 0.946 |
-| Tuned XGBoost | 0.872 | 0.766 | 0.855 | 0.808 | 0.947 |
-
-## Why Logistic Regression was selected
-
-Logistic Regression achieved:
-
-- The highest ROC AUC
-- The highest accuracy
-- The highest precision
-- Strong recall
-- An F1 score almost identical to Random Forest
-- Greater interpretability than the tree-based models
-
-Random Forest achieved the highest recall, making it effective at detecting malignant lesions. However, its precision and ROC AUC were lower.
-
-Logistic Regression was selected because it provided the strongest overall discrimination while maintaining a useful balance between malignant-case detection and false-positive control.
-
-The result also demonstrates that a more complex model does not always outperform a simpler model.
-
-Possible reasons include:
-
-- The dataset is relatively small.
-- Predictor relationships may be sufficiently represented by a linear decision boundary.
-- One-hot encoded features work well with Logistic Regression.
-- Logistic Regression uses regularisation by default.
-- Tree-based models may have had limited additional interaction patterns to exploit.
-
----
-
-# 🔍 Model Explainability
-
-Explainability was performed in `04_explainability.ipynb`.
-
-Healthcare models should not be treated as black boxes. Analysts and clinical stakeholders need to understand which features influence predictions.
-
-## Logistic Regression Coefficients
-
-The coefficients of the final Logistic Regression model were extracted after preprocessing.
-
-Positive coefficients indicate features associated with increased predicted malignancy risk.
-
-Negative coefficients indicate features associated with reduced predicted malignancy risk.
-
-Coefficient magnitude provides an indication of the strength of each association within the fitted model.
-
-## SHAP Explainability
-
-SHAP values were used to explain the model globally and locally.
-
-### Global Explainability
-
-The SHAP summary and bar plots were used to:
-
-- Rank the most influential features
-- Assess the average magnitude of feature effects
-- Understand which variables increased or reduced predicted malignancy risk
-- Evaluate whether predictions relied on clinically meaningful characteristics
-
-### Local Explainability
-
-Individual explanations can show how a particular patient's characteristics contribute to one prediction.
-
-This allows users to inspect:
-
-- Features pushing a prediction towards malignancy
-- Features pushing a prediction towards benignity
-- The relative contribution of each feature
-
-## Explainability Summary
-
-The explainability analysis showed that predictions were influenced by a combination of patient characteristics, medical history and lesion features rather than a single variable.
-
-The analysis improved transparency and provided evidence that the model was learning interpretable patterns from the data.
-
-The results must still be interpreted as model associations rather than confirmed causal or clinical relationships.
-
----
-
-# 🌐 FastAPI Prediction API
-
-The selected model pipeline was exposed through a FastAPI endpoint.
-
-The API accepts patient and lesion characteristics and returns:
-
-- Numerical prediction
-- Benign or malignant label
-- Malignancy probability
-- Malignancy probability percentage
-
-## Running the API
-
-Activate the virtual environment.
-
-### Windows
-
-```bash
-.venv\Scripts\activate
-```
-
-Run Uvicorn through the active Python environment:
-
-```bash
-python -m uvicorn api.main:app --reload
-```
-
-Open Swagger documentation:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-Using `python -m uvicorn` ensures that Uvicorn runs in the same environment containing the trained model dependencies.
-
-## Example response
-
-```json
-{
-  "prediction": 0,
-  "prediction_label": "Benign",
-  "malignancy_probability": 0.3404,
-  "malignancy_probability_percent": 34.04
-}
-```
-
-A successful `200 OK` response confirmed that:
-
-- FastAPI started correctly.
-- The trained pipeline loaded successfully.
-- Input validation worked.
-- The prediction endpoint returned model output.
-
----
-
-# 📊 Key Results
-
-The project produced several important analytical and modelling outcomes.
-
-## Target Distribution
-
-The dataset contained approximately:
-
-- 68% benign lesions
-- 32% malignant lesions
-
-This moderate imbalance was addressed through stratification, class weighting and appropriate evaluation metrics.
-
-## Model Performance
-
-Logistic Regression achieved the highest ROC AUC of approximately **0.955**.
-
-This indicates excellent discrimination between benign and malignant lesions on the held-out test set.
-
-Random Forest achieved the highest recall of approximately **0.913**, showing strong malignant-case detection but lower precision.
-
-## Model Complexity
-
-The tuned Random Forest and XGBoost models did not outperform Logistic Regression on the main test-set selection metric.
-
-This demonstrated that increasing model complexity does not automatically produce better generalisation.
-
-## Explainability
-
-SHAP and Logistic Regression coefficients provided:
-
-- Global feature importance
-- Direction of feature effects
-- Transparent explanation of model behaviour
-- Support for responsible interpretation
-
-## API
-
-The trained model was successfully served through FastAPI and tested using Swagger.
-
----
-
-# 📈 Project Visualisations
-
-The following visualisations were generated during exploratory data analysis, model evaluation, and explainability. These figures provide insights into the dataset, model performance, and the factors influencing lesion malignancy predictions.
-
----
-
-## 👥 Demographic Distribution
-
-This visualisation summarises the distribution of key demographic characteristics, including age group, gender, Fitzpatrick skin type, region, and parental background.
-
-![Demographic Distribution](reports/demographic_distribution.png)
-
----
-
-## 🌿 Behavioural and Environmental Risk Factors
-
-This figure explores behavioural and environmental characteristics such as smoking, alcohol consumption, pesticide exposure, access to piped water, and sewage systems.
-
-![Behavioural Distribution](reports/behavioural_distribution.png)
-
----
-
-## 🎯 Target Distribution
-
-The target distribution illustrates the proportion of benign and malignant lesions within the dataset, highlighting the moderate class imbalance considered during model development.
-
-![Target Distribution](reports/target_distribution.png)
-
----
-
-## 📊 Model Comparison
-
-This chart compares the performance of Logistic Regression, Random Forest, and XGBoost using Accuracy, Precision, Recall, F1 Score, and ROC AUC.
-
-![Model Comparison](reports/model_comparison.png)
-
----
-
-## 📈 Logistic Regression Feature Importance
-
-The feature importance plot displays the most influential predictors identified by the final Logistic Regression model, providing an interpretable view of the variables associated with lesion malignancy.
-
-![Feature Importance](reports/feature_importance.png)
-
----
-
-## 🔍 SHAP Summary Plot
-
-The SHAP (SHapley Additive exPlanations) summary plot explains how each feature contributes to the model's predictions, improving transparency and supporting interpretable AI in healthcare.
-
-![SHAP Summary](reports/shap_summary.png)
-
----
-
-These visualisations complement the quantitative evaluation metrics by providing an intuitive understanding of the data, model behaviour, and feature contributions.
----
-
-# 🩺 Clinical Interpretation
-
-The model was developed as an educational decision-support example.
-
-A higher predicted probability indicates that the combination of recorded characteristics resembles malignant cases in the training data.
-
-The prediction does not establish a diagnosis.
-
-A real clinical workflow would require:
-
-- Clinical examination
-- Dermoscopic assessment
-- Specialist review
-- Histopathology where appropriate
-- External validation
-- Prospective evaluation
-- Governance and regulatory review
-
-The model should therefore be interpreted as a risk-estimation demonstration rather than a diagnostic system.
-
----
-
-# ⚠️ Project Limitations
-
-## Dataset Size
-
-The dataset contains approximately 1,088 observations.
-
-This is sufficient for demonstrating an end-to-end workflow but remains small for clinical machine-learning development.
-
-## External Validation
-
-The final model was evaluated using a held-out test set from the same underlying dataset.
-
-It has not been externally validated on patients from another setting.
-
-## Population Representation
-
-Some demographic, geographical or Fitzpatrick categories may contain relatively few observations.
-
-This may reduce reliability for underrepresented groups.
-
-## Clinical Variables
-
-The dataset does not capture every variable used in real dermatological assessment.
-
-Examples of potentially missing information include:
-
-- High-quality lesion images
-- Dermoscopic findings
-- Histopathology
-- Medication history
-- Immunosuppression
-- Detailed ultraviolet exposure
-- Exact lesion location
-- Clinical morphology
-
-## Data Leakage Risk
-
-Biopsy status was removed because it may represent information generated after clinical suspicion had already occurred.
-
-Other variables should also be reviewed carefully before any real-world implementation.
-
-## Probability Calibration
-
-A high ROC AUC indicates strong ranking performance but does not guarantee that predicted probabilities are perfectly calibrated.
-
-Calibration analysis would be required before interpreting probabilities as real clinical risk.
-
-## Clinical Use
-
-The API and model are for educational and portfolio purposes only.
-
-They should not be used to diagnose patients or determine treatment.
-
----
-
-# 🚀 Future Improvements
-
-## Data Expansion
-
-Future development could include:
-
-- Larger patient populations
-- Multiple healthcare settings
-- Longer study periods
-- More balanced representation
-- External validation datasets
-
-## Additional Clinical Features
-
-Potential variables include:
-
-- Lesion location
-- Dermoscopic features
-- Ultraviolet exposure
-- Immunosuppression
-- Medication history
-- Genetic risk factors
-- Histopathology data
-
-## Image Modelling
-
-Future versions could incorporate lesion images using convolutional neural networks or vision transformers.
-
-Structured clinical variables and image-based predictions could then be combined in a multimodal model.
-
-## Model Validation
-
-Future evaluation should include:
-
-- Repeated stratified cross-validation
-- External validation
-- Probability calibration
-- Sensitivity analysis
-- Subgroup performance assessment
-- Decision-curve analysis
-
-## Fairness Analysis
-
-Performance could be compared across:
-
-- Age groups
-- Gender
-- Fitzpatrick skin types
-- Regions
-- Ethnic or background groups where appropriately represented
-
-## API Improvements
-
-Potential API improvements include:
-
-- Stronger input constraints
-- Health-check endpoint
-- Structured response schemas
-- Logging
-- Automated testing
-- Docker packaging
-- Cloud deployment
-- Authentication
-- Model monitoring
-
----
-
-# 🚀 Installation
-
-## Clone the Repository
-
-```bash
-git clone https://github.com/Alpha-rammy/DermAI_Diagnostics.git
-cd DermAI_Diagnostics
-```
-
-Replace `yourusername` with the correct GitHub username after creating the repository.
-
-## Create a Virtual Environment
-
-### Windows
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-### macOS/Linux
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-## Upgrade pip
-
-```bash
-python -m pip install --upgrade pip
-```
-
-## Install Dependencies
-
-```bash
-python -m pip install -r requirements.txt
-```
-
----
-
-# ▶️ Running the Project
-
-## SQL Scripts
-
-Run the SQL scripts in this order:
-
-1. `01_create_table.sql`
-2. `02_data_quality_check.sql`
-3. `03_exploratory_queries.sql`
-4. `04_advanced_sql.sql`
-5. `05_modeling_dataset.sql`
-
-The final analytic view should be exported as the machine-learning dataset.
-
-## Jupyter Notebooks
-
-Run the notebooks in this order:
-
-1. `01_EDA.ipynb`
-2. `02_preprocessing.ipynb`
-3. `03_Modeling.ipynb`
-4. `04_explainability.ipynb`
-
-Each notebook builds on the previous analytical stage.
-
-## Run the API
-
-```bash
-python -m uvicorn api.main:app --reload
-```
-
-Open:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-# 📜 License
-
-This project is licensed under the MIT License.
-
----
-
-# 👨‍💻 Author
-
-**Ransom Chukwu**
-
-Medical Doctor | Public Health Professional | Data Scientist
-
-## Areas of Interest
-
-- Healthcare Data Science
-- Public Health Analytics
-- Health Informatics
-- Predictive Modelling
-- Explainable AI
-- Clinical Machine Learning
-- Healthcare Operations Analytics
-
----
-
-⭐ If you found this project interesting, consider starring the repository and connecting with me on LinkedIn.
